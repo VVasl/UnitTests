@@ -1,0 +1,89 @@
+//PART1
+
+using NUnit.Framework;
+using System;
+using TestProject1.TimeConverter;
+
+namespace TestProject1
+{
+    [TestFixture]
+    public class TimeZoneConverterTests
+    {
+        private DateTime localDate;
+
+        [SetUp]
+        public void Setup()
+        {
+            localDate = DateTime.Now;
+        }
+        [Test]
+        public void ConverterToEst_LocalDate_ReturnsEstTime()
+        {
+            //Arrange
+            var expected = localDate.AddHours(-7);
+
+            //Act
+            var actual = TimeZoneConverter.ConvertToEst(localDate);
+
+            //Assert
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void ConverterToEst_LocalDate_ReturnsUtcTime()
+        {
+            //Arrange
+            var expected = TimeZoneInfo.ConvertTimeToUtc(localDate);
+
+            //Act
+            var actual = TimeZoneConverter.ConvertToUtc(localDate);
+
+            //Assert
+            Assert.AreEqual(expected, actual);
+        }
+    }
+}
+
+
+//PART 2
+
+using System;
+using NUnit.Framework;
+using NUnit.Framework.Constraints;
+using Moq;
+using TestProject2.BL;
+
+namespace TestProject2
+{
+    [TestFixture]
+    class UserTests
+    {
+        [Test]
+        [TestCase(1)]
+        public void GetUserInfo_UserId_ReturnsUserIfTheUserExists(int userId)
+        {
+            //Arrange, Inject mock object, Act
+            IUserRepository actual = Mock.Of<IUserRepository>(u => u.GetUserInfo(userId) == new User());
+        
+            //Assert 
+            Assert.That(actual, Is.Not.Null);
+        }
+
+        [Test]
+        [TestCase(-1)]
+        public void GetUserInfo_UserIdLessThanZero_ThrowsException(int userId)
+        {
+            //Arrange
+            var mock = new Mock<IUserRepository>();
+
+            //Inject mock object
+            mock.Setup(m => m.GetUserInfo(It.Is<int>(v => v < 0))).Throws<System.NullReferenceException>();
+
+            //Act
+            ActualValueDelegate<object> testDelegate = () => mock.Object.GetUserInfo(userId);
+
+            //Assert
+            Assert.That(testDelegate, Throws.TypeOf<NullReferenceException>());
+        }
+    }
+}
